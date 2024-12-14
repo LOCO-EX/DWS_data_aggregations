@@ -156,18 +156,20 @@ def create_ds(
                 "units": var_units,
                 "units_metadata": f"{var_name}: difference",
                 "long_name": f"spatial standard deviation {var_name}",
-                "cell_methods": "area: std",
+                "cell_methods": "area: standard_deviation",
             },
         ),
     }
     coords_dict = dict(
         time=(
+            ["time"],
             np.arange(
                 np.datetime64(f"{date_start.year}-{str(date_start.month).zfill(2)}-01T01"),
                 np.datetime64(f"{date_end_inclusive.year}-{str(date_end_inclusive.month).zfill(2)}-01T01"),
                 np.timedelta64(1, "h"),
                 dtype="datetime64[ns]",
-            )
+            ),
+            {"standard_name": "time", "long_name": "time of measurement"},
         )
     )
     attrs_dict = dict(

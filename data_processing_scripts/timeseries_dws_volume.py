@@ -82,10 +82,15 @@ def timeseries_dws_volume(
 
         ds_volume = xr.concat(das_volume, dim="time").rename("volume").to_dataset()
 
+        # Add meta data
         ds_volume["volume"].attrs = {
             "units": "m3",
             "cell_methods": "area: sum",
             "long_name": "volume",
+        }
+        ds_volume["time"].attrs = {
+            "standard_name": "time",
+            "long_name": "time of measurement",
         }
         ds_volume.attrs = {
             "title": "Volume of the Dutch Wadden Sea per hour.",
