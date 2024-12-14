@@ -102,6 +102,8 @@ def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path 
 
     ds.to_netcdf(PATH_ROOT / path_to_output / "dws_boundary_area_200x200m.nc", "w", format="NETCDF4")
 
+    print("File created")
+
 
 if __name__ == "__main__":
     create_boundary()
