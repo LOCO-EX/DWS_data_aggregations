@@ -144,18 +144,30 @@ def main():
     )
     parser.add_argument("file_tracer", type=str, help="Path to the file to be processed.")
     parser.add_argument(
-        "file_tracer_diff",
+        "file_tracer_depth",
         type=str,
         help="Path to the file where to save the modified copy of the file_tracer.",
     )
+    parser.add_argument("-t", "--treshold", type=float, help="The treshold for the difference between sea surface elevation and bathymetry")
     parser.add_argument(
         "-d", "--water_depth", action="store_true", help="Include the water depth in the netCDF file"
     )
     parser.add_argument("-m", "--mask", action="store_true", help="Include the mask in the netCDF file")
+
     args = parser.parse_args()
 
+    # Check if the treshold is given
+    if args.treshold is not None:
+        global TRESHOLD
+        TRESHOLD = args.treshold
+
+    print(f"Input file: {args.file_uvz}")
+    print(f"Output file: {args.file_tracer}")
+    print(f"Output file with depth: {args.file_tracer_depth}")
+    print("Treshold: ", TRESHOLD)
+
     # Process the file
-    process_file_based_on_water_depth_and_treshold(args.file_uvz, args.file_tracer, args.file_tracer_diff, args.water_depth, args.mask)
+    process_file_based_on_water_depth_and_treshold(args.file_uvz, args.file_tracer, args.file_tracer_depth, args.water_depth, args.mask)
 
 
 if __name__ == "__main__":
