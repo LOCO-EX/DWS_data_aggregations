@@ -6,150 +6,6 @@ from datetime import datetime, timedelta
 from netCDF4 import date2num, Dataset
 
 
-def create_file_to_save_processed_data(
-    xc: np.array,
-    yc: np.array,
-    units: str,
-    time: np.array,
-    S_avg: np.array,
-    T_avg: np.array,
-    S_sd: np.array,
-    T_sd: np.array,
-    dry_measurement_ratio: np.array,
-    processed_data_file: str,
-):
-    """
-    Creates a new .nc file with the given data.
-
-    Parameters:
-    xc : np.array
-        The x coordinates of the data.
-    yc : np.array
-        The y coordinates of the data.
-    units : str
-        The units of the time data.
-    time : np.array
-        The time values of the new data.
-    S_avg : np.array
-        The sea average salinity data.
-    T_avg : np.array
-        The temperature data.
-    S_sd : np.array
-        The standard deviation of the salinity data.
-    T_sd : np.array
-        The standard deviation of the temperature data.
-    dry_measurement_ratio : np.array
-        The ratio of dry measurements to all measurements over a 15-day period.
-    processed_data_file : str
-        The path to the file where the new data will be stored.
-    """
-    # Get the current time to add to the history
-    current_time = datetime.now().strftime("%a %b %d %H:%M:%S %Y")
-
-    # Create a new dataset
-    ds = xr.Dataset(
-        {
-            "S_avg": (
-                ("time", "yc", "xc"),
-                S_avg,
-                {
-                    "_FillValue": np.nan,
-                    "units": "g kg-1",
-                    "units_metadata": "salinity: on_scale",
-                    "long_name": "15-days averaged salinity",
-                    "coordinates": "xc yc",
-                    "cell_methods": "time: point",
-                },
-            ),
-            "T_avg": (
-                ("time", "yc", "xc"),
-                T_avg,
-                {
-                    "_FillValue": np.nan,
-                    "units": "degC",
-                    "units_metadata": "temperature: on_scale",
-                    "long_name": "15-days averaged temperature",
-                    "coordinates": "xc yc",
-                    "cell_methods": "time: point",
-                },
-            ),
-            "S_sd": (
-                ("time", "yc", "xc"),
-                S_sd,
-                {
-                    "_FillValue": np.nan,
-                    "units": "g kg-1",
-                    "units_metadata": "salinity: on_scale",
-                    "long_name": "15-days standard deviation salinity",
-                    "coordinates": "xc yc",
-                    "cell_methods": "time: point",
-                },
-            ),
-            "T_sd": (
-                ("time", "yc", "xc"),
-                T_sd,
-                {
-                    "_FillValue": np.nan,
-                    "units": "degC",
-                    "units_metadata": "temperature: on_scale",
-                    "long_name": "15-days standard deviation temperature",
-                    "coordinates": "xc yc",
-                    "cell_methods": "time: point",
-                },
-            ),
-            "DW_ratio": (
-                ("time", "yc", "xc"),
-                dry_measurement_ratio,
-                {
-                    "_FillValue": np.nan,
-                    "units": "%",
-                    "units_metadata": "%: on_scale",
-                    "long_name": "ratio of dry measurements to all measurements over a 15-day period",
-                    "coordinates": "xc yc",
-                    "cell_methods": "time: point",
-                },
-            ),
-        },
-        coords={
-            "xc": xc,
-            "yc": yc,
-            "time": time,
-        },
-        attrs={
-            "title": "Volume of the Dutch Wadden Sea per hour.",
-            "conventions": "CF-1.12",
-            "institution": "www.tue.nl; www.nioz.nl;www.io-warnemuende.de",
-            "email": "m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de ",
-            "source": "GETM (www.getm.eu)",
-            "comment": "This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN). ",
-            "history": f"Created [{current_time}] using [{os.path.basename(__file__)}]",
-        },
-    )
-
-    # # Add attributes to the time coordinate
-    ds["time"].attrs["long_name"] = "time"
-    ds["time"].attrs["units"] = units
-    ds["time"].attrs["calendar"] = "standard"
-
-    # Define the encoding for the dataset
-    encoding_format = {
-        "zlib": True,
-        "complevel": 4,
-        "shuffle": True,
-    }
-    encoding = {
-        "S_avg": encoding_format,
-        "T_avg": encoding_format,
-        "S_sd": encoding_format,
-        "T_sd": encoding_format,
-        "DW_ratio": encoding_format,
-    }
-
-    # Save the dataset to a new file
-    ds.to_netcdf(processed_data_file, format="NETCDF4", encoding=encoding)
-    print("File with processed data created successfully.")
-
-
 def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: str):
     """
     Processes the files from the given directory.
@@ -265,6 +121,142 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
         dry_measurement_ratio,
         processed_data_file,
     )
+
+
+def create_file_to_save_processed_data(
+    xc: np.array,
+    yc: np.array,
+    units: str,
+    time: np.array,
+    S_avg: np.array,
+    T_avg: np.array,
+    S_sd: np.array,
+    T_sd: np.array,
+    dry_measurement_ratio: np.array,
+    processed_data_file: str,
+):
+    """
+    Creates a new .nc file with the given data.
+
+    Parameters:
+    xc : np.array
+        The x coordinates of the data.
+    yc : np.array
+        The y coordinates of the data.
+    units : str
+        The units of the time data.
+    time : np.array
+        The time values of the new data.
+    S_avg : np.array
+        The sea average salinity data.
+    T_avg : np.array
+        The temperature data.
+    S_sd : np.array
+        The standard deviation of the salinity data.
+    T_sd : np.array
+        The standard deviation of the temperature data.
+    dry_measurement_ratio : np.array
+        The ratio of dry measurements to all measurements over a 15-day period.
+    processed_data_file : str
+        The path to the file where the new data will be stored.
+    """
+    # Get the current time to add to the history
+    current_time = datetime.now().strftime("%a %b %d %H:%M:%S %Y")
+
+    # Create a new dataset
+    ds = xr.Dataset(
+        {
+            "S_avg": (
+                ("time", "yc", "xc"),
+                S_avg,
+                create_variable_metadata(
+                    "g kg-1", "salinity: on_scale", "15-days averaged salinity"
+                ),
+            ),
+            "T_avg": (
+                ("time", "yc", "xc"),
+                T_avg,
+                create_variable_metadata(
+                    "degC", "temperature: on_scale", "15-days averaged temperature"
+                ),
+            ),
+            "S_sd": (
+                ("time", "yc", "xc"),
+                S_sd,
+                create_variable_metadata(
+                    "g kg-1",
+                    "salinity: on_scale",
+                    "15-days standard deviation salinity",
+                ),
+            ),
+            "T_sd": (
+                ("time", "yc", "xc"),
+                T_sd,
+                create_variable_metadata(
+                    "degC",
+                    "temperature: on_scale",
+                    "15-days standard deviation temperature",
+                ),
+            ),
+            "DW_ratio": (
+                ("time", "yc", "xc"),
+                dry_measurement_ratio,
+                create_variable_metadata(
+                    "%",
+                    "%: on_scale",
+                    "ratio of dry measurements to all measurements over a 15-day period",
+                ),
+            ),
+        },
+        coords={
+            "xc": xc,
+            "yc": yc,
+            "time": time,
+        },
+        attrs={
+            "title": "Volume of the Dutch Wadden Sea per hour.",
+            "conventions": "CF-1.12",
+            "institution": "www.tue.nl; www.nioz.nl;www.io-warnemuende.de",
+            "email": "m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de ",
+            "source": "GETM (www.getm.eu)",
+            "comment": "This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN). ",
+            "history": f"Created [{current_time}] using [{os.path.basename(__file__)}]",
+        },
+    )
+
+    # # Add attributes to the time coordinate
+    ds["time"].attrs["long_name"] = "time"
+    ds["time"].attrs["units"] = units
+    ds["time"].attrs["calendar"] = "standard"
+
+    # Define the encoding for the dataset
+    encoding_format = {
+        "zlib": True,
+        "complevel": 4,
+        "shuffle": True,
+    }
+    encoding = {
+        "S_avg": encoding_format,
+        "T_avg": encoding_format,
+        "S_sd": encoding_format,
+        "T_sd": encoding_format,
+        "DW_ratio": encoding_format,
+    }
+
+    # Save the dataset to a new file
+    ds.to_netcdf(processed_data_file, format="NETCDF4", encoding=encoding)
+    print("File with processed data created successfully.")
+
+
+def create_variable_metadata(units, units_metadata, long_name):
+    return {
+        "_FillValue": np.nan,
+        "units": units,
+        "units_metadata": units_metadata,
+        "long_name": long_name,
+        "coordinates": "xc yc",
+        "cell_methods": "time: point",
+    }
 
 
 def main():
