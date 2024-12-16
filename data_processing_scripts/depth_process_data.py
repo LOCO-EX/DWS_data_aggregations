@@ -1,4 +1,6 @@
 import argparse
+from datetime import datetime, timezone
+
 import numpy as np
 import xarray as xr
 
@@ -84,9 +86,12 @@ def process_file_based_on_water_depth_and_treshold(
         coords=dict(time=da_time[full_hour_indices], xc=da_xc, yc=da_yc),
         attrs=dict(
             title="Dutch Wadden Sea - 200 m resolution : vUERRAL02",
-            Conventions="CF-1.11",
-            institution="www.tue.nl; www.nioz.nl",
-            email="m.duran.matute@tue.nl; theo.gerkema@nioz.nl",
+            Conventions="CF-1.12",
+            institution="www.tue.nl; www.nioz.nl; www.io-warnemuende.de",
+            email="m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de",
+            source="GETM (www.getm.eu)",
+            comment="This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN).",
+            history=f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec="minutes")} using depth_process_data.py",
         ),
     )
 
@@ -107,25 +112,27 @@ def process_file_based_on_water_depth_and_treshold(
     # Specify compression for the variable
     encoding = {
         "S": {
-            "zlib": True,         # Enable compression
-            "complevel": 4,       # Compression level (1-9, where 9 is maximum)
-            "shuffle": True,      # Apply the shuffle filter (helps with compression)
+            "zlib": True,  # Enable compression
+            "complevel": 4,  # Compression level (1-9, where 9 is maximum)
+            "shuffle": True,  # Apply the shuffle filter (helps with compression)
         },
         "T": {
-            "zlib": True,       
-            "complevel": 4,     
-            "shuffle": True,     
+            "zlib": True,
+            "complevel": 4,
+            "shuffle": True,
         },
     }
     if include_water_depth:
-        encoding["water_depth"] = {"zlib": True,        
-            "complevel": 4,     
-            "shuffle": True,     
+        encoding["water_depth"] = {
+            "zlib": True,
+            "complevel": 4,
+            "shuffle": True,
         }
     if include_mask:
-        encoding["mask"] = {"zlib": True,         
-            "complevel": 4,       
-            "shuffle": True,      
+        encoding["mask"] = {
+            "zlib": True,
+            "complevel": 4,
+            "shuffle": True,
         }
 
     ds.to_netcdf(diff_path, format="NETCDF4", encoding=encoding)
@@ -167,7 +174,9 @@ def main():
     print("Treshold: ", TRESHOLD)
 
     # Process the file
-    process_file_based_on_water_depth_and_treshold(args.file_uvz, args.file_tracer, args.file_tracer_depth, args.water_depth, args.mask)
+    process_file_based_on_water_depth_and_treshold(
+        args.file_uvz, args.file_tracer, args.file_tracer_diff, args.water_depth, args.mask
+    )
 
 
 if __name__ == "__main__":

@@ -95,10 +95,10 @@ def timeseries_dws_volume(
         ds_volume.attrs = {
             "title": "Volume of the Dutch Wadden Sea per hour.",
             "Conventions": "CF-1.12",
-            "institution": "www.tue.nl; www.nioz.nl",
-            "email": "m.duran.matute@tue.nl; theo.gerkema@nioz.nl",
-            "source": "GETM",
-            "comment": "Produced as part of the LOCO-ex project",
+            "institution": "www.tue.nl; www.nioz.nl; www.io-warnemuende.de",
+            "email": "m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de",
+            "source": "GETM (www.getm.eu)",
+            "comment": "This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN).",
             "history": f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec="minutes")} using timeseries_dws_volume.py",
         }
 
