@@ -129,11 +129,13 @@ def create_ds(
             var_std_name = "T_std"
             var_units = "degC"
             var_name = "temperature"
+            var_standard_name = "sea_water_temperature"
         case "S":
             var_mean_name = "S_mean"
             var_std_name = "S_std"
             var_units = "g kg-1"
             var_name = "salinity"
+            var_standard_name = "sea_water_absolute_salinity"
         case _:
             print("Error")
             quit()
@@ -147,6 +149,7 @@ def create_ds(
                 "units_metadata": f"{var_name}: on_scale",
                 "long_name": f"spatially averaged {var_name}",
                 "cell_methods": "area: mean",
+                "standard_name": var_standard_name,
             },
         ),
         var_std_name: (

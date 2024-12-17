@@ -1,3 +1,6 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+
 import argparse
 from datetime import datetime, timezone
 
@@ -5,7 +8,7 @@ import numpy as np
 import xarray as xr
 
 # Define the threshold for the difference between sea surface elevation and bathymetry
-TRESHOLD = 0.2
+TRESHOLD = 0.15
 
 
 def process_file_based_on_water_depth_and_treshold(
@@ -55,7 +58,7 @@ def process_file_based_on_water_depth_and_treshold(
     for t in np.arange(sea_level.shape[0]):
         mask[t, :, :] = np.logical_or(mask_over_time[t, :, :], mask_bathymetry)
 
-    # Open the tracer file and drop the unnecessary variables
+    # Open the tracer file
     ds_tracer = xr.open_dataset(tracer_path)
 
     # Read the S and T variables
@@ -67,23 +70,40 @@ def process_file_based_on_water_depth_and_treshold(
     T[mask] = np.nan
     water_depth[mask] = np.nan
 
-    # Create new file
+    # Create new DataSet
     ds = xr.Dataset(
         data_vars={
             "S": (
                 ["time", "yc", "xc"],
                 S,
                 {
-                    "units": "1e-3",
+                    "units": "g kg-1",
+                    "coordinates": "xc yc",
+                    "long_name": "depth-avg. salinity",
+                    "standard_name": "sea_water_absolute_salinity",
                 },
             ),
             "T": (
                 ["time", "yc", "xc"],
                 T,
-                {"units": "degC", "units_metadata": f"temperature: on_scale"},
+                {
+                    "units": "degC",
+                    "units_metadata": "temperature: on_scale",
+                    "coordinates": "xc yc",
+                    "long_name": "depth-avg. temperature",
+                    "standard_name": "sea_water_temperature",
+                },
             ),
         },
-        coords=dict(time=da_time[full_hour_indices], xc=da_xc, yc=da_yc),
+        coords=dict(
+            time=(
+                ["time"],
+                da_time[full_hour_indices],
+                {"standard_name": "time", "long_name": "time of measurement"},
+            ),
+            xc=da_xc,
+            yc=da_yc,
+        ),
         attrs=dict(
             title="Dutch Wadden Sea - 200 m resolution : vUERRAL02",
             Conventions="CF-1.12",
@@ -108,6 +128,7 @@ def process_file_based_on_water_depth_and_treshold(
         )
     if include_mask:
         ds["mask"] = (("time", "yc", "xc"), mask)
+        ds["land"].attrs = {"long_name": "dry land"}
 
     # Specify compression for the variable
     encoding = {
