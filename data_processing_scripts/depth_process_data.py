@@ -7,9 +7,6 @@ from datetime import datetime, timezone
 import numpy as np
 import xarray as xr
 
-# Define the threshold for the difference between sea surface elevation and bathymetry
-TRESHOLD = 0.15
-
 
 def process_file_based_on_water_depth_and_treshold(
     uvz_path: str, tracer_path: str, diff_path: str, include_water_depth: bool, include_mask: bool
@@ -176,7 +173,13 @@ def main():
         type=str,
         help="Path to the file where to save the modified copy of the file_tracer.",
     )
-    parser.add_argument("-t", "--treshold", type=float, help="The treshold for the difference between sea surface elevation and bathymetry")
+    parser.add_argument(
+        "-t",
+        "--treshold",
+        type=float,
+        default=15.0,
+        help="The treshold for the difference between sea surface elevation and bathymetry",
+    )
     parser.add_argument(
         "-d", "--water_depth", action="store_true", help="Include the water depth in the netCDF file"
     )
@@ -184,10 +187,9 @@ def main():
 
     args = parser.parse_args()
 
-    # Check if the treshold is given
-    if args.treshold is not None:
-        global TRESHOLD
-        TRESHOLD = args.treshold
+    # Assign treshold value, default 15.0
+    global TRESHOLD
+    TRESHOLD = args.treshold
 
     print(f"Input file: {args.file_uvz}")
     print(f"Output file: {args.file_tracer}")
@@ -196,7 +198,7 @@ def main():
 
     # Process the file
     process_file_based_on_water_depth_and_treshold(
-        args.file_uvz, args.file_tracer, args.file_tracer_diff, args.water_depth, args.mask
+        args.file_uvz, args.file_tracer, args.file_tracer_depth, args.water_depth, args.mask
     )
 
 
