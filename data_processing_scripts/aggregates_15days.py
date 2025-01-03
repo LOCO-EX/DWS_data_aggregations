@@ -2,6 +2,7 @@ import argparse
 import numpy as np
 import xarray as xr
 import os
+import sys
 from datetime import datetime, timedelta
 from netCDF4 import date2num, Dataset
 
@@ -33,13 +34,25 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
     # Create empty lists to store the data
     S_merge = []
     T_merge = []
+    last_date = None
 
     for file1 in files_in_dir1_sorted:
 
         # Load the file
         ds = xr.open_dataset(data_dir + "/" + file1)
 
-        # Here should be inlcuded the check of the end and start date from the previous and following files
+        # The check of the end and start date from the previous and following files
+        if last_date is not None:
+            print(f"Delta: {ds["time"].values[0] - last_date}")
+            # Check if the time is continuous between the files (1 hour difference)
+            if (ds["time"].values[0] - last_date) != np.timedelta64(
+                3600000000000, "ns"
+            ):
+                sys.exit(
+                    f"Error: There is not a continous time between the {file1} and previously processed file."
+                )
+
+        last_date = ds["time"].values[-1]
 
         # Prepare the mask
         expanded_mask = np.expand_dims(mask, axis=0)
