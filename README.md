@@ -1,2 +1,2 @@
-# Sea_data_visualization
-Visualization of pre-processed Wadden Sea data
+# Sea_data_aggregations
+Pre-processing of Wadden Sea data.
