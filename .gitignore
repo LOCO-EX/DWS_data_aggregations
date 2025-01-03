@@ -163,4 +163,5 @@ cython_debug/
 
 data_processing_scripts/tracer/
 data_processing_scripts/uvz/
+data_processing_scripts/exclusive_shallow_areas/
 data_processing_scripts/dws_boundary_area_200x200m.nc
