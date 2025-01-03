@@ -3,13 +3,19 @@
 
 import argparse
 from datetime import datetime, timezone
+from netCDF4 import date2num, Dataset
 
 import numpy as np
 import xarray as xr
+import os
 
 
 def process_file_based_on_water_depth_and_treshold(
-    uvz_path: str, tracer_path: str, diff_path: str, include_water_depth: bool, include_mask: bool
+    uvz_path: str,
+    tracer_path: str,
+    diff_path: str,
+    include_water_depth: bool,
+    include_mask: bool,
 ):
     """
     Processes the given file, create a new one and save it.
@@ -31,6 +37,9 @@ def process_file_based_on_water_depth_and_treshold(
     # Open the uvz file where bathymetry and sea surface elevation are stored
     ds_uvz = xr.open_dataset(uvz_path)
 
+    # Open the tracer file
+    ds_tracer = xr.open_dataset(tracer_path)
+
     # Read the sea surface elevation and bathymetry
     sea_level = ds_uvz["z"].values  # Shape: (time, yc, xc)
     bathymetry = ds_uvz["bathymetry"].values  # Shape: (yc, xc)
@@ -43,6 +52,12 @@ def process_file_based_on_water_depth_and_treshold(
     full_hour_indices = np.where(time_minutes == 0)[0]
     sea_level = sea_level[full_hour_indices, :, :]
 
+    # Check if the files have the same start time
+    if da_time[full_hour_indices][0] != ds_tracer["time"].values[0]:
+        raise ValueError(
+            f"The files {uvz_path} and {tracer_path} do not have the same start time. Please, check the files."
+        )
+
     # Compute the difference between the sea surface elevation and the bathymetry
     water_depth = bathymetry + sea_level
 
@@ -54,9 +69,6 @@ def process_file_based_on_water_depth_and_treshold(
     mask = np.empty_like(mask_over_time)
     for t in np.arange(sea_level.shape[0]):
         mask[t, :, :] = np.logical_or(mask_over_time[t, :, :], mask_bathymetry)
-
-    # Open the tracer file
-    ds_tracer = xr.open_dataset(tracer_path)
 
     # Read the S and T variables
     S = ds_tracer["S"].values
@@ -93,11 +105,12 @@ def process_file_based_on_water_depth_and_treshold(
             ),
         },
         coords=dict(
-            time=(
-                ["time"],
-                da_time[full_hour_indices],
-                {"standard_name": "time", "long_name": "time of measurement"},
-            ),
+            # time=(
+            #     ["time"],
+            #     da_time[full_hour_indices],
+            #     {"standard_name": "time", "long_name": "time of measurement"},
+            # ),
+            time=ds_tracer["time"],
             xc=da_xc,
             yc=da_yc,
         ),
@@ -125,38 +138,31 @@ def process_file_based_on_water_depth_and_treshold(
         )
     if include_mask:
         ds["mask"] = (("time", "yc", "xc"), mask)
-        ds["land"].attrs = {"long_name": "dry land"}
+        # ds["land"].attrs = {"long_name": "dry land"}
 
+    # Define the encoding for the dataset
+    encoding_format = {
+        "zlib": True,
+        "complevel": 4,
+        "shuffle": True,
+    }
     # Specify compression for the variable
     encoding = {
-        "S": {
-            "zlib": True,  # Enable compression
-            "complevel": 4,  # Compression level (1-9, where 9 is maximum)
-            "shuffle": True,  # Apply the shuffle filter (helps with compression)
-        },
-        "T": {
-            "zlib": True,
-            "complevel": 4,
-            "shuffle": True,
-        },
+        "S": encoding_format,
+        "T": encoding_format,
     }
     if include_water_depth:
-        encoding["water_depth"] = {
-            "zlib": True,
-            "complevel": 4,
-            "shuffle": True,
-        }
+        encoding["water_depth"] = encoding_format
     if include_mask:
-        encoding["mask"] = {
-            "zlib": True,
-            "complevel": 4,
-            "shuffle": True,
-        }
+        encoding["mask"] = encoding_format
 
     ds.to_netcdf(diff_path, format="NETCDF4", encoding=encoding)
     print(ds)
 
     print("File processed successfully.")
+
+    ds_uvz.close()
+    ds_tracer.close()
 
 
 def main():
@@ -165,41 +171,62 @@ def main():
     parser.add_argument(
         "file_uvz",
         type=str,
-        help="Path to the file from which the sea level and bathymetry will be extracted.",
+        help="Path to the folder with the files from which the sea level and bathymetry will be extracted.",
     )
-    parser.add_argument("file_tracer", type=str, help="Path to the file to be processed.")
+    parser.add_argument(
+        "file_tracer",
+        type=str,
+        help="Path to the folder with the files to be processed.",
+    )
     parser.add_argument(
         "file_tracer_depth",
         type=str,
-        help="Path to the file where to save the modified copy of the file_tracer.",
+        help="Path to the folder with the files where to save the modified copies of the files from file_tracer.",
     )
     parser.add_argument(
         "-t",
         "--treshold",
         type=float,
-        default=15.0,
+        default=0.15,
         help="The treshold for the difference between sea surface elevation and bathymetry",
     )
     parser.add_argument(
-        "-d", "--water_depth", action="store_true", help="Include the water depth in the netCDF file"
+        "-d",
+        "--water_depth",
+        action="store_true",
+        help="Include the water depth in the netCDF file",
     )
-    parser.add_argument("-m", "--mask", action="store_true", help="Include the mask in the netCDF file")
+    parser.add_argument(
+        "-m", "--mask", action="store_true", help="Include the mask in the netCDF file"
+    )
 
     args = parser.parse_args()
 
     # Assign treshold value, default 15.0
     global TRESHOLD
     TRESHOLD = args.treshold
-
-    print(f"Input file: {args.file_uvz}")
-    print(f"Output file: {args.file_tracer}")
-    print(f"Output file with depth: {args.file_tracer_depth}")
     print("Treshold: ", TRESHOLD)
 
-    # Process the file
-    process_file_based_on_water_depth_and_treshold(
-        args.file_uvz, args.file_tracer, args.file_tracer_depth, args.water_depth, args.mask
-    )
+    # Get list of files from the directories and sort them alphabetically
+    files_in_uvz = os.listdir(args.file_uvz)
+    files_in_uvz_sorted = sorted(files_in_uvz)
+
+    files_in_tracer = os.listdir(args.file_tracer)
+    files_in_tracer_sorted = sorted(files_in_tracer)
+
+    for i in range(len(files_in_uvz_sorted)):
+        # Process the file
+        print(f"Input files: {files_in_uvz_sorted[i]}, {files_in_tracer_sorted[i]}")
+        process_file_based_on_water_depth_and_treshold(
+            os.path.join(args.file_uvz, files_in_uvz_sorted[i]),
+            os.path.join(args.file_tracer, files_in_tracer_sorted[i]),
+            os.path.join(
+                args.file_tracer_depth,
+                f"{files_in_tracer_sorted[i][:-3]}.treshold{TRESHOLD}.nc",
+            ),
+            args.water_depth,
+            args.mask,
+        )
 
 
 if __name__ == "__main__":
