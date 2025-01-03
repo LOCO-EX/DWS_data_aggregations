@@ -2,7 +2,7 @@ name: env_dws
 channels:
   - conda-forge
 dependencies:
-  - python=3.8
+  - python=3.12
   - numpy
   - xarray
   - netCDF4
