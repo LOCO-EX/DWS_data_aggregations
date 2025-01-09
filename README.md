@@ -1,2 +1,2 @@
-# Sea_data_visualization
-Visualization of pre-processed Wadden Sea data
+# Spatial_and_15days_aggregations
+Pre-processing of Wadden Sea data.
