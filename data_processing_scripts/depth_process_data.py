@@ -3,7 +3,7 @@
 
 import argparse
 from datetime import datetime, timezone
-from netCDF4 import date2num, Dataset
+from netCDF4 import date2num
 
 import numpy as np
 import xarray as xr
@@ -38,7 +38,7 @@ def process_file_based_on_water_depth_and_treshold(
     ds_uvz = xr.open_dataset(uvz_path)
 
     # Open the tracer file
-    ds_tracer = xr.open_dataset(tracer_path)
+    ds_tracer = xr.open_dataset(tracer_path, decode_times=False)
 
     # Read the sea surface elevation and bathymetry
     sea_level = ds_uvz["z"].values  # Shape: (time, yc, xc)
@@ -52,11 +52,16 @@ def process_file_based_on_water_depth_and_treshold(
     full_hour_indices = np.where(time_minutes == 0)[0]
     sea_level = sea_level[full_hour_indices, :, :]
 
+    # Open the uvz file to check if the time is the same, readable only if decode_times=False
+    ds_uvz_units = xr.open_dataset(uvz_path, decode_times=False)
     # Check if the files have the same start time
-    if da_time[full_hour_indices][0] != ds_tracer["time"].values[0]:
+    if (
+        ds_uvz_units["time"].values[full_hour_indices][0] != ds_tracer["time"].values[0]
+    ) and (ds_uvz_units["time"].attrs["units"] == ds_tracer["time"].attrs["units"]):
         raise ValueError(
             f"The files {uvz_path} and {tracer_path} do not have the same start time. Please, check the files."
         )
+    ds_uvz_units.close()
 
     # Compute the difference between the sea surface elevation and the bathymetry
     water_depth = bathymetry + sea_level
