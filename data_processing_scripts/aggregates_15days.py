@@ -26,15 +26,17 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
     # Load the boundaries and create a mask for the area of interest
     boundaries = xr.open_dataset(dws_boundaries_area)
     mask = boundaries["mask_dws"].values
+    boundaries.close()
 
     # Get list of files from the directory and sort them alphabetically
     files_in_dir1 = os.listdir(data_dir)
     files_in_dir1_sorted = sorted(files_in_dir1)
 
     # Create empty lists to store the data
-    S_merge = []
-    T_merge = []
+    S_merge_ = []
+    T_merge_ = []
     last_date = None
+    S_15day_avg = None
 
     for file1 in files_in_dir1_sorted:
 
@@ -59,37 +61,72 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
         expanded_mask = np.repeat(expanded_mask, ds["S"].values.shape[0], axis=0)
 
         # Use the mask to select the area of interest
-        S_merge.extend(np.where(expanded_mask == 1, ds["S"].values, np.nan))
-        T_merge.extend(np.where(expanded_mask == 1, ds["T"].values, np.nan))
+        S_merge_.extend(np.where(expanded_mask == 1, ds["S"].values, np.nan))
+        T_merge_.extend(np.where(expanded_mask == 1, ds["T"].values, np.nan))
 
+        # Close the file
         ds.close()
 
-    # Convert the lists to numpy arrays
-    S_merge = np.array(S_merge)
-    T_merge = np.array(T_merge)
+        # Convert the lists to numpy arrays
+        S_merge = np.array(S_merge_)
+        T_merge = np.array(T_merge_)
 
-    # Get the dimensions of the data
-    time_steps, yc_dim_, xc_dim_ = S_merge.shape
-    # Define the number of steps per period
-    steps_per_period = 15 * 24
-    valid_steps = (time_steps // steps_per_period) * steps_per_period
+        # Get the dimensions of the data
+        time_steps, yc_dim_, xc_dim_ = S_merge.shape
+        # Define the number of steps per period
+        steps_per_period = 15 * 24
+        valid_steps = (time_steps // steps_per_period) * steps_per_period
+        if valid_steps != 0:
+            # Reshape the data to have the 15-day periods
+            S_merge = S_merge[:valid_steps, :, :]
+            S_reshaped = S_merge.reshape(-1, steps_per_period, yc_dim_, xc_dim_)
 
-    # Reshape the data to have the 15-day periods
-    S_merge = S_merge[:valid_steps, :, :]
-    S_reshaped = S_merge.reshape(-1, steps_per_period, yc_dim_, xc_dim_)
+            T_merge = T_merge[:valid_steps, :, :]
+            T_reshaped = T_merge.reshape(-1, steps_per_period, yc_dim_, xc_dim_)
 
-    T_merge = T_merge[:valid_steps, :, :]
-    T_reshaped = T_merge.reshape(-1, steps_per_period, yc_dim_, xc_dim_)
+            # Mask the NaN values
+            masked_S = np.ma.masked_array(S_reshaped, np.isnan(S_reshaped))
+            masked_T = np.ma.masked_array(T_reshaped, np.isnan(T_reshaped))
 
-    # Calculate the 15-day average and standard deviation and don't consider NaN values
-    S_15day_avg = np.nanmean(S_reshaped, axis=1)
-    T_15day_avg = np.nanmean(T_reshaped, axis=1)
+            # Calculate the 15-day average and standard deviation and don't consider NaN values
+            if S_15day_avg is None:  # First iteration
+                S_15day_avg = np.mean(masked_S, axis=1).filled(np.nan)
+                T_15day_avg = np.mean(masked_T, axis=1).filled(np.nan)
 
-    S_15day_sd = np.nanstd(S_reshaped, axis=1)
-    T_15day_sd = np.nanstd(T_reshaped, axis=1)
+                S_15day_sd = np.std(masked_S, axis=1).filled(np.nan)
+                T_15day_sd = np.std(masked_T, axis=1).filled(np.nan)
+                # Calculate the ratio of dry measurements to all measurements over a 15-day periods
+                dry_measurement_ratio = (
+                    np.isnan(S_reshaped).sum(axis=1) / S_reshaped.shape[1] * 100
+                )
 
-    # Calculate the ratio of dry measurements to all measurements over a 15-day periods
-    dry_measurement_ratio = np.isnan(S_reshaped).sum(axis=1) / S_reshaped.shape[1] * 100
+            else:  # Subsequent iterations
+                S_15day_avg = np.concatenate(
+                    (S_15day_avg, np.mean(masked_S, axis=1).filled(np.nan)), axis=0
+                )
+                T_15day_avg = np.concatenate(
+                    (T_15day_avg, np.mean(masked_T, axis=1).filled(np.nan)), axis=0
+                )
+
+                S_15day_sd = np.concatenate(
+                    (S_15day_sd, np.std(masked_S, axis=1).filled(np.nan)), axis=0
+                )
+                T_15day_sd = np.concatenate(
+                    (T_15day_sd, np.std(masked_T, axis=1).filled(np.nan)), axis=0
+                )
+                # Calculate the ratio of dry measurements to all measurements over a 15-day periods
+                dry_measurement_ratio = np.concatenate(
+                    (
+                        dry_measurement_ratio,
+                        np.isnan(S_reshaped).sum(axis=1) / S_reshaped.shape[1] * 100,
+                    ),
+                    axis=0,
+                )
+
+            # Remove the processed 15-day periods from the lists
+            S_merge_ = S_merge_[valid_steps:]
+            T_merge_ = T_merge_[valid_steps:]
+
     # Don't consider the ratio outside of the Wadden Sea area
     expanded_mask = np.expand_dims(mask, axis=0)
     expanded_mask = np.repeat(expanded_mask, S_15day_avg.shape[0], axis=0)
@@ -112,20 +149,26 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
     interval = timedelta(days=15)
 
     # Create the middle points for each 15-day period
-    n_periods = time_steps // steps_per_period
+    n_periods = T_15day_avg.shape[0]
     middle_times = [start_date + interval * i + interval / 2 for i in range(n_periods)]
 
     # Read data from the first data file to get the time units,
     # Use Dataset from netCDF4 library (not xarray - there is a problem in reading time units)
-    ds_d = Dataset(data_dir + "/" + files_in_dir1[0], "r")
+    ds_d = xr.open_dataset(data_dir + "/" + files_in_dir1[0], decode_times=False)
     # Create the time values for the dataset
-    time = date2num(middle_times, units=ds_d["time"].units, calendar="standard")
-
+    time = np.array(
+        date2num(
+            middle_times,
+            units=ds_d["time"].attrs["units"],
+            calendar=ds_d["time"].attrs["calendar"],
+        ),
+        dtype=np.float64,
+    )
     # Create a new file with the processed data
     create_file_to_save_processed_data(
         ds_st["xc"],
         ds_st["yc"],
-        ds_d["time"].units,
+        ds_d,
         time,
         S_15day_avg,
         T_15day_avg,
@@ -134,12 +177,13 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
         dry_measurement_ratio,
         processed_data_file,
     )
+    ds_d.close()
 
 
 def create_file_to_save_processed_data(
     xc: np.array,
     yc: np.array,
-    units: str,
+    ds_d: xr.Dataset,
     time: np.array,
     S_avg: np.array,
     T_avg: np.array,
@@ -156,8 +200,8 @@ def create_file_to_save_processed_data(
         The x coordinates of the data.
     yc : np.array
         The y coordinates of the data.
-    units : str
-        The units of the time data.
+    ds_d : xr.Dataset
+        The dataset from the first data file.
     time : np.array
         The time values of the new data.
     S_avg : np.array
@@ -211,20 +255,28 @@ def create_file_to_save_processed_data(
                     "15-days standard deviation temperature",
                 ),
             ),
-            "DW_ratio": (
+            "exp_pct": (
                 ("time", "yc", "xc"),
                 dry_measurement_ratio,
                 create_variable_metadata(
                     "%",
                     "%: on_scale",
-                    "ratio of dry measurements to all measurements over a 15-day period",
+                    "exposure percentage over a 15-day period",
                 ),
             ),
         },
         coords={
             "xc": xc,
             "yc": yc,
-            "time": time,
+            "time": (
+                ["time"],
+                time,
+                {
+                    "long_name": ds_d["time"].attrs["long_name"],
+                    "units": ds_d["time"].attrs["units"],
+                    "calendar": ds_d["time"].attrs["calendar"],
+                },
+            ),
         },
         attrs={
             "title": "Volume of the Dutch Wadden Sea per hour.",
@@ -237,11 +289,6 @@ def create_file_to_save_processed_data(
         },
     )
 
-    # # Add attributes to the time coordinate
-    ds["time"].attrs["long_name"] = "time"
-    ds["time"].attrs["units"] = units
-    ds["time"].attrs["calendar"] = "standard"
-
     # Define the encoding for the dataset
     encoding_format = {
         "zlib": True,
@@ -253,7 +300,7 @@ def create_file_to_save_processed_data(
         "T_avg": encoding_format,
         "S_sd": encoding_format,
         "T_sd": encoding_format,
-        "DW_ratio": encoding_format,
+        "exp_pct": encoding_format,
     }
 
     # Save the dataset to a new file
