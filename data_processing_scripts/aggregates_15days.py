@@ -127,6 +127,12 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
             S_merge_ = S_merge_[valid_steps:]
             T_merge_ = T_merge_[valid_steps:]
 
+    # Convert double to float
+    S_15day_avg = S_15day_avg.astype(np.float32)
+    T_15day_avg = T_15day_avg.astype(np.float32)
+    S_15day_sd = S_15day_sd.astype(np.float32)
+    T_15day_sd = T_15day_sd.astype(np.float32)
+
     # Don't consider the ratio outside of the Wadden Sea area
     expanded_mask = np.expand_dims(mask, axis=0)
     expanded_mask = np.repeat(expanded_mask, S_15day_avg.shape[0], axis=0)
