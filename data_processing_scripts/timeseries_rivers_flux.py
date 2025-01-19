@@ -37,28 +37,39 @@ def timeseries_rivers_flux(
     nr_timesteps = len(da_time)
 
     # Create Station, Lat and Lon List
-    station_names = [
-        "Cleveringsluizen",
-        "Deschans",
-        "Dijkmanshuizen",
-        "Harlingen",
-        "Helsdeur",
-        "Krassekeet",
-        "Miedema",
-        "Oostoever",
-        "Ropta",
-        "Zandkes",
-        "Denoever",
-        "Kornwerderzand",
-    ]
+    station_names = np.array(
+        [
+            "Cleveringsluizen",
+            "Deschans",
+            "Dijkmanshuizen",
+            "Harlingen",
+            "Helsdeur",
+            "Krassekeet",
+            "Miedema",
+            "Oostoever",
+            "Ropta",
+            "Zandkes",
+            "Denoever",
+            "Kornwerderzand",
+        ]
+    )
     nr_stations = len(station_names)
-    lats = [53.412, 53.029, 53.054, 53.180, 52.943, 53.098, 53.310, 52.932, 53.207, 53.064, 52.937, 53.075]
-    lons = [6.190, 4.829, 4.872, 5.417, 4.793, 4.899, 5.627, 4.795, 5.434, 4.876, 5.045, 5.327]
+    lats = np.array(
+        [53.412, 53.029, 53.054, 53.180, 52.943, 53.098, 53.310, 52.932, 53.207, 53.064, 52.937, 53.075]
+    )
+    lons = np.array([6.190, 4.829, 4.872, 5.417, 4.793, 4.899, 5.627, 4.795, 5.434, 4.876, 5.045, 5.327])
 
     # Create volume_flux array
     np_volume_flux = np.zeros(shape=(nr_timesteps, nr_stations))
     for i, station in enumerate(station_names):
         np_volume_flux[:, i] = ds_rivers[station].values
+
+    # Sort by size
+    index_by_size = np.argsort(np.sum(np_volume_flux, 0))[::-1]
+    station_names[:] = station_names[index_by_size]
+    lats[:] = lats[index_by_size]
+    lons[:] = lons[index_by_size]
+    np_volume_flux[:, :] = np_volume_flux[:, index_by_size]
 
     # Create volume_flux meta data
     volume_flux_meta = dict(
