@@ -1,4 +1,4 @@
-## Spatial_and_15days_aggregations
+## DWS_data_aggregations
 The repository contains scripts for postprocessing the data which is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The data which includes the Dutch Wadden Sea related variables and is stored in NetCDF data format.
 
 *Postprocessing includes:*
