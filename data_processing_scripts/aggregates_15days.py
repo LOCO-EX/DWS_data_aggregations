@@ -184,6 +184,7 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
         processed_data_file,
     )
     ds_d.close()
+    ds_st.close()
 
 
 def create_file_to_save_processed_data(
