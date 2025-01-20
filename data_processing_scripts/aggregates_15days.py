@@ -3,8 +3,8 @@ import numpy as np
 import xarray as xr
 import os
 import sys
-from datetime import datetime, timedelta
-from netCDF4 import date2num, Dataset
+from datetime import datetime, timedelta, timezone
+from netCDF4 import date2num
 
 
 def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: str):
@@ -286,13 +286,13 @@ def create_file_to_save_processed_data(
             ),
         },
         attrs={
-            "title": "Volume of the Dutch Wadden Sea per hour.",
+            "title": "Layers of 15 days aggregations of hydrodynamic quantities from the Dutch Wadden Sea",
             "conventions": "CF-1.12",
             "institution": "www.tue.nl; www.nioz.nl;www.io-warnemuende.de",
             "email": "m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de ",
             "source": "GETM (www.getm.eu)",
             "comment": "This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN). ",
-            "history": f"Created [{current_time}] using [{os.path.basename(__file__)}]",
+            "history": f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec="minutes")} using aggregates_15days.py",
         },
     )
 
