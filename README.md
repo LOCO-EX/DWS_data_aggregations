@@ -11,7 +11,7 @@ The repository contains scripts for postprocessing the data which is provided as
 - Aggregations (average and standard deviation) of salinity and temperature variables and creation of expousure percentage for 15 days periods in the file [aggregates_15days.py](https://github.com/LOCO-EX/Spatial_and_15days_aggregations/blob/main/data_processing_scripts/aggregates_15days.py).
 
 
-### Sofware
+### Software
 The environment employed for the analysis is based on Python v3.12 and can be found in the file [environment.yml](https://github.com/LOCO-EX/Spatial_and_15days_aggregations/blob/main/environment.yml).
 
 
