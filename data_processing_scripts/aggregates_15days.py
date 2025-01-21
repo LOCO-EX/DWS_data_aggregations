@@ -234,14 +234,14 @@ def create_file_to_save_processed_data(
                 ("time", "yc", "xc"),
                 S_avg,
                 create_variable_metadata(
-                    "g kg-1", "salinity: on_scale", "15-days averaged salinity"
+                    "g kg-1", "salinity: on_scale", "15-day averaged salinity"
                 ),
             ),
             "T_avg": (
                 ("time", "yc", "xc"),
                 T_avg,
                 create_variable_metadata(
-                    "degC", "temperature: on_scale", "15-days averaged temperature"
+                    "degC", "temperature: on_scale", "15-day averaged temperature"
                 ),
             ),
             "S_sd": (
@@ -250,7 +250,7 @@ def create_file_to_save_processed_data(
                 create_variable_metadata(
                     "g kg-1",
                     "salinity: on_scale",
-                    "15-days standard deviation salinity",
+                    "15-day standard deviation salinity",
                 ),
             ),
             "T_sd": (
@@ -259,7 +259,7 @@ def create_file_to_save_processed_data(
                 create_variable_metadata(
                     "degC",
                     "temperature: on_scale",
-                    "15-days standard deviation temperature",
+                    "15-day standard deviation temperature",
                 ),
             ),
             "exp_pct": (
@@ -279,14 +279,14 @@ def create_file_to_save_processed_data(
                 ["time"],
                 time,
                 {
-                    "long_name": ds_d["time"].attrs["long_name"],
+                    "long_name": ds_d["time"].attrs["long_name"]+" middle points of each 15-day period",
                     "units": ds_d["time"].attrs["units"],
                     "calendar": ds_d["time"].attrs["calendar"],
                 },
             ),
         },
         attrs={
-            "title": "Layers of 15 days aggregations of hydrodynamic quantities from the Dutch Wadden Sea",
+            "title": "Layers of 15-day aggregations of hydrodynamic quantities from the Dutch Wadden Sea",
             "conventions": "CF-1.12",
             "institution": "www.tue.nl; www.nioz.nl;www.io-warnemuende.de",
             "email": "m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de ",
