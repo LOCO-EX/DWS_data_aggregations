@@ -102,13 +102,28 @@ def timeseries_dws_volume(
             "history": f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec="minutes")} using timeseries_dws_volume.py",
         }
 
+        # Define the encoding for the dataset
+        encoding_format = {
+            "zlib": True,
+            "complevel": 4,
+            "shuffle": True,
+        }
+        encoding = {
+            "volume": encoding_format,
+            "time": encoding_format,
+        }
+
+        # Save the dataset to a new file
         if save:
             ds_volume.to_netcdf(
-                PATH_ROOT
-                / path_output
-                / f"DWS.volume.{date_start.strftime("%Y%m")}01-{date_end.strftime("%Y%m")}01.nc",
+                (
+                    PATH_ROOT
+                    / path_output
+                    / f"DWS.volume.{date_start.strftime("%Y%m")}01-{date_end.strftime("%Y%m")}01.nc"
+                ).resolve(),
                 "w",
                 format="NETCDF4",
+                encoding=encoding,
             )
             print("Saved netCDF file")
 

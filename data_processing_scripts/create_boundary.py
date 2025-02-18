@@ -32,7 +32,7 @@ def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path 
     file_response = requests.get(
         "https://data.4tu.nl/file/6929d89f-e8cb-463d-b490-3265132841f5/3b205b0a-eb9b-4765-9fce-5336538efec3"
     )
-    path_temp_boundary_file = PATH_ROOT / path_to_output / "boundary.nc"
+    path_temp_boundary_file = (PATH_ROOT / path_to_output / "boundary.nc").resolve()
     open(path_temp_boundary_file, "wb").write(file_response.content)
 
     # Open DS boundary file
@@ -100,7 +100,7 @@ def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path 
         ),
     )
 
-    ds.to_netcdf(PATH_ROOT / path_to_output / "dws_boundary_area_200x200m.nc", "w", format="NETCDF4")
+    ds.to_netcdf(PATH_ROOT / path_to_output / "DWS200m.boundary_area.nc", "w", format="NETCDF4")
 
     print("File created")
 
