@@ -7,26 +7,19 @@ from datetime import datetime, timedelta, timezone
 from netCDF4 import date2num
 
 
-def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: str):
+def process_files(data_dir: str, processed_data_file: str):
     """
     Processes the files from the given directory.
     It calculates the 15-day average and standard deviation of the salinity and temperature.
     It also calculates the ratio of dry measurements to all measurements over a 15-day period.
 
     Parameters:
-    dws_boundaries_area : str
-        The path to the file where the boundaries of the Wadden Sea area are stored.
     data_dir : str
         The path to the directory where the data to process is stored.
     processed_data_file : str
         The path to the file where the processed files will be stored.
 
     """
-
-    # Load the boundaries and create a mask for the area of interest
-    boundaries = xr.open_dataset(dws_boundaries_area)
-    mask = boundaries["mask_dws"].values
-    boundaries.close()
 
     # Get list of files from the directory and sort them alphabetically
     files_in_dir1 = os.listdir(data_dir)
@@ -45,7 +38,7 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
 
         # The check of the end and start date from the previous and following files
         if last_date is not None:
-            print(f"Delta: {ds["time"].values[0] - last_date}")
+            print(f"Delta: {ds['time'].values[0] - last_date}")
             # Check if the time is continuous between the files (1 hour difference)
             if (ds["time"].values[0] - last_date) != np.timedelta64(
                 3600000000000, "ns"
@@ -56,13 +49,8 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
 
         last_date = ds["time"].values[-1]
 
-        # Prepare the mask
-        expanded_mask = np.expand_dims(mask, axis=0)
-        expanded_mask = np.repeat(expanded_mask, ds["S"].values.shape[0], axis=0)
-
-        # Use the mask to select the area of interest
-        S_merge_.extend(np.where(expanded_mask == 1, ds["S"].values, np.nan))
-        T_merge_.extend(np.where(expanded_mask == 1, ds["T"].values, np.nan))
+        S_merge_.extend(ds["S"].values)
+        T_merge_.extend(ds["T"].values)
 
         # Close the file
         ds.close()
@@ -133,14 +121,9 @@ def process_files(dws_boundaries_area: str, data_dir: str, processed_data_file: 
     S_15day_sd = S_15day_sd.astype(np.float32)
     T_15day_sd = T_15day_sd.astype(np.float32)
 
-    # Don't consider the ratio outside of the Wadden Sea area
-    expanded_mask = np.expand_dims(mask, axis=0)
-    expanded_mask = np.repeat(expanded_mask, S_15day_avg.shape[0], axis=0)
-    dry_measurement_ratio = np.where(expanded_mask == 1, dry_measurement_ratio, np.nan)
-
     # Check if there are NaN values in the Wadden Sea area
     # - which means that there were dry points for the 15-day period
-    area_values = S_15day_avg[expanded_mask == 1]
+    area_values = S_15day_avg
     has_nan = np.isnan(area_values).sum()
     print(f"Number of NaN values in the area: {has_nan}")
 
@@ -279,7 +262,8 @@ def create_file_to_save_processed_data(
                 ["time"],
                 time,
                 {
-                    "long_name": ds_d["time"].attrs["long_name"]+" middle points of each 15-day period",
+                    "long_name": ds_d["time"].attrs["long_name"]
+                    + " middle points of each 15-day period",
                     "units": ds_d["time"].attrs["units"],
                     "calendar": ds_d["time"].attrs["calendar"],
                 },
@@ -292,7 +276,7 @@ def create_file_to_save_processed_data(
             "email": "m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de ",
             "source": "GETM (www.getm.eu)",
             "comment": "This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN). ",
-            "history": f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec="minutes")} using aggregates_15days.py",
+            "history": f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec='minutes')} using aggregates_15days.py",
         },
     )
 
@@ -339,11 +323,6 @@ def main():
     # Arguments parsing
     parser = argparse.ArgumentParser(description="Process a .nc files.")
     parser.add_argument(
-        "dws_boundaries_area",
-        type=str,
-        help="Path to the file where the boundaries are stored.",
-    )
-    parser.add_argument(
         "data_dir",
         type=str,
         help="Path to the directory where the files are stored.",
@@ -358,7 +337,7 @@ def main():
     args = parser.parse_args()
 
     # Process the file
-    process_files(args.dws_boundaries_area, args.data_dir, args.processed_data_file)
+    process_files(args.data_dir, args.processed_data_file)
 
 
 if __name__ == "__main__":
