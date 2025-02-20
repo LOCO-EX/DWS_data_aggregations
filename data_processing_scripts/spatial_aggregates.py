@@ -61,7 +61,9 @@ def spatial_aggregates(
 
             # File path
             path_data_combined = (
-                PATH_ROOT / path_combined / f"RE.DWS200m.combined.{year}{str(month).zfill(2)}{"01"}.nc"
+                PATH_ROOT
+                / path_combined
+                / f"RE.DWS200m.combined.{year}{str(month).zfill(2)}{"01"}.nc"
             )
             if not Path(path_data_combined).is_file():
                 print(f"{path_data_combined} does not exist")
@@ -86,13 +88,20 @@ def spatial_aggregates(
             for t in np.arange(timesteps):
                 # Calculate weights; water_depth (local volume) / total_volume
                 weights = (
-                    ds_trace_date["water_depth"].values[t, :, :] / ds_trace_date["total_volume"].values[t]
+                    ds_trace_date["water_depth"].values[t, :, :]
+                    / ds_trace_date["total_volume"].values[t]
                 )
 
                 # Calculate weighted mean and std
-                mean = np.nansum(ds_trace_date[variable_to_summarise].values[t, :, :] * weights)
+                mean = np.nansum(
+                    ds_trace_date[variable_to_summarise].values[t, :, :] * weights
+                )
                 std = np.sqrt(
-                    np.nansum((ds_trace_date[variable_to_summarise].values[t, :, :] - mean) ** 2 * weights)
+                    np.nansum(
+                        (ds_trace_date[variable_to_summarise].values[t, :, :] - mean)
+                        ** 2
+                        * weights
+                    )
                 )
 
                 means.append(mean)
@@ -118,7 +127,11 @@ def spatial_aggregates(
 
 
 def create_ds(
-    means: list[np.float32], stds: list[np.float32], date_start: date, date_end: date, variable: str
+    means: list[np.float32],
+    stds: list[np.float32],
+    date_start: date,
+    date_end: date,
+    variable: str,
 ):
     # End date with one month added to get a date range
     date_end_inclusive = date_end + relativedelta(months=1)
@@ -167,8 +180,12 @@ def create_ds(
         time=(
             ["time"],
             np.arange(
-                np.datetime64(f"{date_start.year}-{str(date_start.month).zfill(2)}-01T01"),
-                np.datetime64(f"{date_end_inclusive.year}-{str(date_end_inclusive.month).zfill(2)}-01T01"),
+                np.datetime64(
+                    f"{date_start.year}-{str(date_start.month).zfill(2)}-01T01"
+                ),
+                np.datetime64(
+                    f"{date_end_inclusive.year}-{str(date_end_inclusive.month).zfill(2)}-01T01"
+                ),
                 np.timedelta64(1, "h"),
                 dtype="datetime64[ns]",
             ),

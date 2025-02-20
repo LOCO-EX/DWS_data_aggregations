@@ -2,12 +2,12 @@
 # -*- coding: utf-8 -*-
 
 import argparse
+import os
 from datetime import datetime, timezone
-from netCDF4 import date2num
 
 import numpy as np
 import xarray as xr
-import os
+from netCDF4 import date2num
 
 
 def process_file_based_on_water_depth_and_treshold(
@@ -55,7 +55,7 @@ def process_file_based_on_water_depth_and_treshold(
     # Open the uvz file to check if the time is the same, readable only if decode_times=False
     ds_uvz_units = xr.open_dataset(uvz_path, decode_times=False)
     # Check if the files have the same start time
-    if (ds_uvz_units["time"].attrs["units"] != ds_tracer["time"].attrs["units"]):
+    if ds_uvz_units["time"].attrs["units"] != ds_tracer["time"].attrs["units"]:
         raise ValueError(
             f"The files {uvz_path} and {tracer_path} do not have the same start time. Please, check the files."
         )

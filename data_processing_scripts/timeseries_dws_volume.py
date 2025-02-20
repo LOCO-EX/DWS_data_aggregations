@@ -56,7 +56,9 @@ def timeseries_dws_volume(
 
             # File path
             path_data_combined = (
-                PATH_ROOT / path_combined / f"RE.DWS200m.combined.{year}{str(month).zfill(2)}{"01"}.nc"
+                PATH_ROOT
+                / path_combined
+                / f"RE.DWS200m.combined.{year}{str(month).zfill(2)}{"01"}.nc"
             )
             if not Path(path_data_combined).is_file():
                 print(f"{path_data_combined} does not exist")
@@ -72,7 +74,9 @@ def timeseries_dws_volume(
             print(f"DataSet is masked")
 
             # Create volume DataArray
-            da_volume = ds_trace_date["water_depth"].sum(dim=["xc", "yc"]) * (200**2)  # Multipy by area
+            da_volume = ds_trace_date["water_depth"].sum(dim=["xc", "yc"]) * (
+                200**2
+            )  # Multipy by area
             das_volume.append(da_volume)
             print(f"volume is added")
 

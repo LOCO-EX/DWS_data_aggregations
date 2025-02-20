@@ -66,14 +66,18 @@ def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path 
     # Intitialize mask; 1 at boundary, 0 elsewhere
     mask_boundary = np.zeros((xs.size, ys.size), dtype=int)
     for x, y in bounds:
-        mask_boundary[int((x - x_min) // xy_resolution), int((y - y_min) // xy_resolution)] = 1
+        mask_boundary[
+            int((x - x_min) // xy_resolution), int((y - y_min) // xy_resolution)
+        ] = 1
 
     # Interpolate 2 points to close the boundary
     mask_boundary[745, 198] = 1
     mask_boundary[184, 116] = 1
 
     # Fill the inside area with 2
-    bounds_as_2d_fill = flood_fill(mask_boundary, (400, 200), 2, connectivity=1)  # 2 as inner value
+    bounds_as_2d_fill = flood_fill(
+        mask_boundary, (400, 200), 2, connectivity=1
+    )  # 2 as inner value
 
     # Make mask where it is 2
     mask_outside_area = bounds_as_2d_fill == 2
@@ -100,7 +104,9 @@ def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path 
         ),
     )
 
-    ds.to_netcdf(PATH_ROOT / path_to_output / "DWS200m.boundary_area.nc", "w", format="NETCDF4")
+    ds.to_netcdf(
+        PATH_ROOT / path_to_output / "DWS200m.boundary_area.nc", "w", format="NETCDF4"
+    )
 
     print("File created")
 

@@ -32,7 +32,9 @@ def create_volume_flux_das(transect: str, file: Path):
 
     dx = xc[-1] - xc[0]
     dy = yc[-1] - yc[0]
-    normal_vector = (dy, -dx) / np.sqrt(dy**2 + dx**2)  # Vector normal to the transect line
+    normal_vector = (dy, -dx) / np.sqrt(
+        dy**2 + dx**2
+    )  # Vector normal to the transect line
 
     # Layer height (m) * Point width (m) * Velocity (m/s) = Volume flux m3s-1
     if "uu" in vars and "vv" in vars:
@@ -51,10 +53,14 @@ def create_volume_flux_das(transect: str, file: Path):
         )
         vars_to_sum = ["level", "nbdyp"]
     elif "uu" in vars:
-        ds_core = ds_core.assign(volume_flux=ds_core["hn"] * 200 * (normal_vector[0] * ds_core["uu"]))
+        ds_core = ds_core.assign(
+            volume_flux=ds_core["hn"] * 200 * (normal_vector[0] * ds_core["uu"])
+        )
         vars_to_sum = ["level", "xc", "yc"]
     elif "vv" in vars:
-        ds_core = ds_core.assign(volume_flux=ds_core["hn"] * 200 * (normal_vector[1] * ds_core["vv"]))
+        ds_core = ds_core.assign(
+            volume_flux=ds_core["hn"] * 200 * (normal_vector[1] * ds_core["vv"])
+        )
         vars_to_sum = ["level", "xc", "yc"]
     else:
         print("Error with velocity")
@@ -100,8 +106,8 @@ def create_merged_das(transects: list[str], path_files: str | Path):
     das_coords_2 = []
     for transect in transects:
         for file in os.listdir(Path(path_files) / transect):  # All the different time
-            da_vol_flux, da_salt_flux, da_n, da_coords_1, da_coords_2 = create_volume_flux_das(
-                transect, Path(path_files) / transect / file
+            da_vol_flux, da_salt_flux, da_n, da_coords_1, da_coords_2 = (
+                create_volume_flux_das(transect, Path(path_files) / transect / file)
             )
             das_volume_flux.append(da_vol_flux)
             das_salinity_flux.append(da_salt_flux)
@@ -110,7 +116,10 @@ def create_merged_das(transects: list[str], path_files: str | Path):
             das_coords_2.append(da_coords_2)
 
     ds_merge_vol_flux = xr.merge(das_volume_flux)
-    ds_merge_vol_flux["time"].attrs = {"standard_name": "time", "long_name": "time of measurement"}
+    ds_merge_vol_flux["time"].attrs = {
+        "standard_name": "time",
+        "long_name": "time of measurement",
+    }
     da_time = ds_merge_vol_flux["time"]
 
     np_merge_vol_flux = ds_merge_vol_flux["volume_flux"].values.transpose()
@@ -149,8 +158,8 @@ def timeseries_transects_flux(
     # transects = ["Eierlandsgat", "MardiepTahlweg", "Marsdiep", "VlieInlet", "Watershed3", "Watershed5"]
     transects = ["Eierlandsgat", "Marsdiep", "VlieInlet", "Watershed3", "Watershed5"]
 
-    (da_time, np_vol_flux, np_salt_flux, np_normal, np_point_1, np_point_2) = create_merged_das(
-        transects, path_files
+    (da_time, np_vol_flux, np_salt_flux, np_normal, np_point_1, np_point_2) = (
+        create_merged_das(transects, path_files)
     )
 
     # Create volume and salinity flux meta data

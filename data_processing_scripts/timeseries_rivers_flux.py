@@ -55,9 +55,37 @@ def timeseries_rivers_flux(
     )
     nr_stations = len(station_names)
     lats = np.array(
-        [53.412, 53.029, 53.054, 53.180, 52.943, 53.098, 53.310, 52.932, 53.207, 53.064, 52.937, 53.075]
+        [
+            53.412,
+            53.029,
+            53.054,
+            53.180,
+            52.943,
+            53.098,
+            53.310,
+            52.932,
+            53.207,
+            53.064,
+            52.937,
+            53.075,
+        ]
     )
-    lons = np.array([6.190, 4.829, 4.872, 5.417, 4.793, 4.899, 5.627, 4.795, 5.434, 4.876, 5.045, 5.327])
+    lons = np.array(
+        [
+            6.190,
+            4.829,
+            4.872,
+            5.417,
+            4.793,
+            4.899,
+            5.627,
+            4.795,
+            5.434,
+            4.876,
+            5.045,
+            5.327,
+        ]
+    )
 
     # Create volume_flux array
     np_volume_flux = np.zeros(shape=(nr_timesteps, nr_stations))
@@ -86,12 +114,20 @@ def timeseries_rivers_flux(
             "lon": (
                 ("station"),
                 lons,
-                {"standard_name": "longitude", "long_name": "station longitude", "units": "degrees_east"},
+                {
+                    "standard_name": "longitude",
+                    "long_name": "station longitude",
+                    "units": "degrees_east",
+                },
             ),
             "lat": (
                 ("station"),
                 lats,
-                {"standard_name": "latitude", "long_name": "station latitude", "units": "degrees_north"},
+                {
+                    "standard_name": "latitude",
+                    "long_name": "station latitude",
+                    "units": "degrees_north",
+                },
             ),
             "station_name": (
                 ("station"),
@@ -139,5 +175,7 @@ def timeseries_rivers_flux(
 
 if __name__ == "__main__":
     timeseries_rivers_flux(
-        save=True, path_file=Path("../../../Data/GETM_RIVERS/rivers.v02.nc"), path_output=Path("../../data")
+        save=True,
+        path_file=Path("../../../Data/GETM_RIVERS/rivers.v02.nc"),
+        path_output=Path("../../data"),
     )
