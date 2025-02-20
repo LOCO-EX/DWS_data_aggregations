@@ -4,7 +4,7 @@ The repository contains scripts for postprocessing the data which is provided as
 *Postprocessing includes:*
 
 - Creation of mask to estabilish the area of Dutch Wadden Sea in [create_boundary.py](https://github.com/LOCO-EX/Spatial_and_15days_aggregations/blob/main/data_processing_scripts/create_boundary.py).
-- Filtering so as to exclude the shallow areas based on the bathymetry and sea surface elevation difference for given treshold in the file [depth_process_data.py](https://github.com/LOCO-EX/Spatial_and_15days_aggregations/blob/main/data_processing_scripts/depth_process_data.py).
+- Filtering so as to exclude the dry areas based on the bathymetry and sea surface elevation difference for given treshold in the file [depth_process_data.py](https://github.com/LOCO-EX/Spatial_and_15days_aggregations/blob/main/data_processing_scripts/depth_process_data.py). The script creates only temporary files, which are later used in aggregations.
 - Spatial aggregations (average and standard deviation) of salinity and temperature variables for the whole area of Dutch Wadden Sea each hour over a given date range in the file [spatial_aggregates.py](https://github.com/LOCO-EX/Spatial_and_15days_aggregations/blob/main/data_processing_scripts/spatial_aggregates.py).
 - Calculation of the volume of the Dutch Wadden Sea each hour over a given date range in the file [timeseries_dws_volume.py](https://github.com/LOCO-EX/Spatial_and_15days_aggregations/blob/main/data_processing_scripts/timeseries_dws_volume.py).
 - Calculation of the volume flux from rivers into the Dutch Wadden Sea five times an hour in the file [timeseries_rivers_flux.py](https://github.com/LOCO-EX/Spatial_and_15days_aggregations/blob/main/data_processing_scripts/timeseries_rivers_flux.py).
