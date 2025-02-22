@@ -277,9 +277,9 @@ def create_file_to_save_processed_data(
             "title": "Layers of 15-day aggregations of hydrodynamic quantities from the Dutch Wadden Sea",
             "conventions": "CF-1.12",
             "institution": "www.tue.nl; www.nioz.nl;www.io-warnemuende.de",
-            "email": "m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de ",
+            "email": "m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de",
             "source": "GETM (www.getm.eu)",
-            "comment": "This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN). ",
+            "comment": "This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN).",
             "history": f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec='minutes')} using aggregates_15days.py",
         },
     )
