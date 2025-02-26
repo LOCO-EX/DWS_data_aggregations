@@ -15,7 +15,7 @@ PATH_ROOT = Path(__file__).parent
 def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path = ""):
     """Create a netCDF DWS mask
 
-    This function downloads the file containing the boundary inddices.
+    This function downloads the file containing the boundary indices.
     It will add two points to the mask to ensure the boundary encloses an area.
     The area is then determined using a floodfill algorithm.
     This area is converted to a mask and saved as an netCDF file.
