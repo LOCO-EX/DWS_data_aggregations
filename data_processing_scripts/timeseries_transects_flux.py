@@ -44,6 +44,12 @@ def create_volume_flux_das(transect: str, file: Path):
             point_width = 210.950
         else:
             print(f"{transect} not a recognized transect")
+            print(
+                f"Spacing mean: {np.mean(np.sqrt((xc[1:]-xc[:-1])**2+(yc[1:]-yc[:-1])**2))}"
+            )
+            print(
+                f"Spacing std (should be around zero): {np.std(np.sqrt((xc[1:]-xc[:-1])**2+(yc[1:]-yc[:-1])**2))}"
+            )
             quit()
 
         ds_core = ds_core.assign(
