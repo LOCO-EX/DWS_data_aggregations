@@ -11,6 +11,8 @@ from dateutil.relativedelta import relativedelta
 from numpy.typing import NDArray
 
 PATH_ROOT = Path(__file__).parent
+START_DATE = date()
+END_DATE = date()
 
 
 def spatial_aggregates(
@@ -55,7 +57,7 @@ def spatial_aggregates(
     stds: list[np.float32] = list()
 
     for year in np.arange(date_start.year, date_end.year + 1, 1):
-        for month in np.arange(date_start.month, date_end.month + 1, 1):
+        for month in np.arange(1, 13, 1):  # 1 - 13 for the whole year
             print(f"Started {year}{str(month).zfill(2)}01")
             time_start = time()
 
@@ -63,7 +65,7 @@ def spatial_aggregates(
             path_data_combined = (
                 PATH_ROOT
                 / path_combined
-                / f"RE.DWS200m.combined.{year}{str(month).zfill(2)}{"01"}.nc"
+                / f"RE.TS.vertmean.{year}{str(month).zfill(2)}{"01"}.treshold0.15.nc"
             )
             if not Path(path_data_combined).is_file():
                 print(f"{path_data_combined} does not exist")
@@ -212,15 +214,17 @@ def create_ds(
 
 
 if __name__ == "__main__":
+    start_date = START_DATE
+    end_date = END_DATE
     spatial_aggregates(
-        date(2000, 1, 1),
-        date(2000, 1, 1),
+        start_date,
+        end_date,
         "S",
         save=True,
     )
     spatial_aggregates(
-        date(2000, 1, 1),
-        date(2000, 1, 1),
+        start_date,
+        end_date,
         "T",
         save=True,
     )

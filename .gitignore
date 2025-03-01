@@ -165,3 +165,5 @@ data_processing_scripts/tracer/
 data_processing_scripts/uvz/
 data_processing_scripts/exclusive_shallow_areas/
 data_processing_scripts/wind_texel/
+data_processing_scripts/combine_different_timeseries.ipynb
+data_processing_scripts/rt_.ipynb

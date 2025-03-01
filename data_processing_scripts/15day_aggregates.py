@@ -10,8 +10,16 @@ import numpy as np
 import xarray as xr
 from netCDF4 import date2num
 
+PATH_ROOT = ""
+# Dates only to name the file properly - it doesn't affect the processing
+START_DATE = 0
+END_DATE = 0
 
-def process_files(data_dir: str, processed_data_file: str):
+
+def process_files(
+    data_dir: str | str = "",
+    processed_data_file: str | str = "",
+):
     """
     Processes the files from the given directory.
     It calculates the 15-day average and standard deviation of the salinity and temperature.
@@ -22,8 +30,19 @@ def process_files(data_dir: str, processed_data_file: str):
         The path to the directory where the data to process is stored.
     processed_data_file : str
         The path to the file where the processed files will be stored.
-
     """
+    data_dir = PATH_ROOT + data_dir
+    # processed_data_file = (
+    #     PATH_ROOT
+    #     + processed_data_file
+    #     + "15day.aggregates."
+    #     + str(FIRST_DATE)
+    #     + "-"
+    #     + str(END_DATE)
+    #     + ".nc",
+    # )
+    processed_data_file = PATH_ROOT + processed_data_file
+    print(processed_data_file)
 
     # Get list of files from the directory and sort them alphabetically
     files_in_dir1 = os.listdir(data_dir)
@@ -157,6 +176,11 @@ def process_files(data_dir: str, processed_data_file: str):
         ),
         dtype=np.float64,
     )
+
+    # Read longtitude and latitude
+    lonc = ds_d["lonc"].values
+    latc = ds_d["latc"].values
+
     # Create a new file with the processed data
     create_file_to_save_processed_data(
         ds_st["xc"],
@@ -169,6 +193,8 @@ def process_files(data_dir: str, processed_data_file: str):
         T_15day_sd,
         dry_measurement_ratio,
         processed_data_file,
+        latc,
+        lonc,
     )
     ds_d.close()
     ds_st.close()
@@ -185,6 +211,8 @@ def create_file_to_save_processed_data(
     T_sd: np.array,
     dry_measurement_ratio: np.array,
     processed_data_file: str,
+    latc: np.array,
+    lonc: np.array,
 ):
     """
     Creates a new .nc file with the given data.
@@ -210,6 +238,10 @@ def create_file_to_save_processed_data(
         The ratio of dry measurements to all measurements over a 15-day period.
     processed_data_file : str
         The path to the file where the new data will be stored.
+    latc : np.array
+        The latitude data.
+    lonc : np.array
+        The longitude data.
     """
     # Get the current time to add to the history
     current_time = datetime.now().strftime("%a %b %d %H:%M:%S %Y")
@@ -258,6 +290,22 @@ def create_file_to_save_processed_data(
                     "exposure percentage over a 15-day period",
                 ),
             ),
+            "lonc": (
+                ("yc", "xc"),
+                lonc,
+                {
+                    "units": "degrees_east",
+                    "long_name": "longitude",
+                },
+            ),
+            "latc": (
+                ("yc", "xc"),
+                latc,
+                {
+                    "units": "degrees_north",
+                    "long_name": "latitude",
+                },
+            ),
         },
         coords={
             "xc": xc,
@@ -296,6 +344,8 @@ def create_file_to_save_processed_data(
         "S_sd": encoding_format,
         "T_sd": encoding_format,
         "exp_pct": encoding_format,
+        "lonc": encoding_format,
+        "latc": encoding_format,
     }
 
     # Save the dataset to a new file
@@ -324,24 +374,8 @@ def main():
 
     """
 
-    # Arguments parsing
-    parser = argparse.ArgumentParser(description="Process a .nc files.")
-    parser.add_argument(
-        "data_dir",
-        type=str,
-        help="Path to the directory where the files are stored.",
-    )
-    parser.add_argument(
-        "processed_data_file",
-        nargs="?",
-        default="15_days_avg_std.nc",
-        type=str,
-        help="Path to the file where the data will be stored.",
-    )
-    args = parser.parse_args()
-
     # Process the file
-    process_files(args.data_dir, args.processed_data_file)
+    process_files()
 
 
 if __name__ == "__main__":
