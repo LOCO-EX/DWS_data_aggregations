@@ -10,8 +10,8 @@ PATH_ROOT = Path(__file__).parent
 
 
 def timeseries_wind_texel(
-    path_file: str | Path = "",
-    path_output: str | Path = "",
+    path_file: str | Path = Path(""),
+    path_output: str | Path = Path(""),
 ):
     """Adds metadata to a netCDF with the wind texel middle point of the Dutch Wadden Sea.
 
@@ -66,7 +66,4 @@ def timeseries_wind_texel(
 
 
 if __name__ == "__main__":
-    timeseries_wind_texel(
-        path_file=Path("wind_texel/wind_texel_mid_point.nc"),
-        path_output=Path("wind_texel"),
-    )
+    timeseries_wind_texel()

@@ -9,10 +9,13 @@ import requests
 import xarray as xr
 from skimage.morphology import flood_fill
 
-PATH_ROOT = Path(__file__).parent
+PATH_ROOT = ""
 
 
-def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path = ""):
+def create_boundary(
+    path_to_tracer: str | str = "",
+    path_to_output: str | str = "",
+):
     """Create a netCDF DWS mask
 
     This function downloads the file containing the boundary indices.
@@ -32,7 +35,7 @@ def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path 
     file_response = requests.get(
         "https://data.4tu.nl/file/6929d89f-e8cb-463d-b490-3265132841f5/3b205b0a-eb9b-4765-9fce-5336538efec3"
     )
-    path_temp_boundary_file = (PATH_ROOT / path_to_output / "boundary.nc").resolve()
+    path_temp_boundary_file = PATH_ROOT + "\\output_files\\boundary.nc"
     open(path_temp_boundary_file, "wb").write(file_response.content)
 
     # Open DS boundary file
@@ -41,10 +44,9 @@ def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path 
     bounds = ds_boundary["bdr_dws"].values.copy()
     # Delete boundary file
     ds_boundary.close()
-    path_temp_boundary_file.unlink(missing_ok=False)
 
     # Open DS trace
-    ds_trace = xr.open_dataset(PATH_ROOT / path_to_tracer)
+    ds_trace = xr.open_dataset(PATH_ROOT + path_to_tracer)
     # Get x and y values
     da_xs = ds_trace["xc"]
     da_ys = ds_trace["yc"]
@@ -62,6 +64,8 @@ def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path 
 
     x_min = xs[0]
     y_min = ys[0]
+    print(x_min, y_min)
+    print(xs[-1], ys[-1])
 
     # Intitialize mask; 1 at boundary, 0 elsewhere
     mask_boundary = np.zeros((xs.size, ys.size), dtype=int)
@@ -71,12 +75,12 @@ def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path 
         ] = 1
 
     # Interpolate 2 points to close the boundary
-    mask_boundary[745, 198] = 1
-    mask_boundary[184, 116] = 1
+    mask_boundary[745 - 49, 198 - 30] = 1  #!
+    mask_boundary[184 - 49, 116 - 30] = 1
 
     # Fill the inside area with 2
     bounds_as_2d_fill = flood_fill(
-        mask_boundary, (400, 200), 2, connectivity=1
+        mask_boundary, (400, 200), 2, connectivity=1  # change in point (maybe)
     )  # 2 as inner value
 
     # Make mask where it is 2
@@ -104,9 +108,7 @@ def create_boundary(path_to_tracer: str | Path = "", path_to_output: str | Path 
         ),
     )
 
-    ds.to_netcdf(
-        PATH_ROOT / path_to_output / "DWS200m.boundary_area.nc", "w", format="NETCDF4"
-    )
+    ds.to_netcdf(PATH_ROOT + path_to_output, "w", format="NETCDF4")
 
     print("File created")
 
