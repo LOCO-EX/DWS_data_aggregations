@@ -18,6 +18,7 @@ def add_transect(da: xr.DataArray, transect: str):
 def create_volume_flux_das(transect: str, file: Path):
     ds = xr.open_dataset(file)
     vars = list(ds.keys())
+    dims = list(ds.dims.keys())
     vars_to_keep = ["hn", "uu", "vv", "salt"]
     vars_to_drop = list(set(vars) - set(vars_to_keep))
     ds_core = ds.drop_vars(vars_to_drop)
@@ -36,41 +37,33 @@ def create_volume_flux_das(transect: str, file: Path):
         dy**2 + dx**2
     )  # Vector normal to the transect line
 
-    # Layer height (m) * Point width (m) * Velocity (m/s) = Volume flux m3s-1
-    if "uu" in vars and "vv" in vars:
-        if transect == "Eierlandsgat":
-            point_width = 209.785
-        elif transect == "VlieInlet":
-            point_width = 210.950
-        else:
-            print(f"{transect} not a recognized transect")
-            print(
-                f"Spacing mean: {np.mean(np.sqrt((xc[1:]-xc[:-1])**2+(yc[1:]-yc[:-1])**2))}"
-            )
-            print(
-                f"Spacing std (should be around zero): {np.std(np.sqrt((xc[1:]-xc[:-1])**2+(yc[1:]-yc[:-1])**2))}"
-            )
-            quit()
-
-        ds_core = ds_core.assign(
-            volume_flux=ds_core["hn"]
-            * point_width
-            * (normal_vector[0] * ds_core["uu"] + normal_vector[1] * ds_core["vv"])
-        )
-        vars_to_sum = ["level", "nbdyp"]
-    elif "uu" in vars:
-        ds_core = ds_core.assign(
-            volume_flux=ds_core["hn"] * 200 * (normal_vector[0] * ds_core["uu"])
-        )
-        vars_to_sum = ["level", "xc", "yc"]
-    elif "vv" in vars:
-        ds_core = ds_core.assign(
-            volume_flux=ds_core["hn"] * 200 * (normal_vector[1] * ds_core["vv"])
-        )
-        vars_to_sum = ["level", "xc", "yc"]
+    if transect == "Eierlandsgat":
+        point_width = 209.785
+    elif transect == "VlieInlet":
+        point_width = 210.950
+    elif (
+        transect == "Marsdiep"
+        or transect == "Borndiep"
+        or transect == "Pinkegat"
+        or transect == "Watershed1"
+        or transect == "Watershed2"
+        or transect == "Watershed3"
+        or transect == "Watershed4"
+        or transect == "Watershed5"
+    ):
+        point_width = 200
     else:
-        print("Error with velocity")
+        print(f"{transect} not a recognized transect")
         quit()
+
+    # Layer height (m) * Point width (m) * Velocity (m/s) = Volume flux m3s-1
+    ds_core = ds_core.assign(
+        volume_flux=ds_core["hn"]
+        * point_width
+        * (normal_vector[0] * ds_core["uu"] + normal_vector[1] * ds_core["vv"])
+    )
+
+    vars_to_sum = ["level", "nbdyp"] if "nbdyp" in dims else ["level", "xc", "yc"]
 
     ds_core = ds_core.assign(salinity_flux=lambda x: x.volume_flux * x.salt)
     ds_sum = ds_core.sum(vars_to_sum)
@@ -161,8 +154,19 @@ def timeseries_transects_flux(
         The path where the file will be saved, by default ""
     """
 
-    # transects = ["Eierlandsgat", "MardiepTahlweg", "Marsdiep", "VlieInlet", "Watershed3", "Watershed5"]
-    transects = ["Eierlandsgat", "Marsdiep", "VlieInlet", "Watershed3", "Watershed5"]
+    # transects = ["Eierlandsgat", "MardiepTahlweg", "Marsdiep", "VlieInlet", "Watershed3", "Watershed5", "Borndiep", "C0", "C1", "C2", "C5", "C6", "Pinkegat", "Watershed1", "Watershed2", "Watershed4"]
+    transects = [
+        "Eierlandsgat",
+        "Marsdiep",
+        "VlieInlet",
+        "Watershed3",
+        "Watershed5",
+        "Borndiep",
+        "Pinkegat",
+        "Watershed1",
+        "Watershed2",
+        "Watershed4",
+    ]
 
     (da_time, np_vol_flux, np_salt_flux, np_normal, np_point_1, np_point_2) = (
         create_merged_das(transects, path_files)
