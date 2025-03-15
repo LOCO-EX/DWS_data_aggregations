@@ -66,9 +66,10 @@ def process_files(
             if (ds["time"].values[0] - last_date) != np.timedelta64(
                 3600000000000, "ns"
             ):
-                sys.exit(
+                print(
                     f"Error: There is not a continous time between the {file1} and previously processed file."
                 )
+                break
 
         last_date = ds["time"].values[-1]
 
