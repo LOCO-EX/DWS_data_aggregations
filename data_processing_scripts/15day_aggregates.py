@@ -11,9 +11,6 @@ import xarray as xr
 from netCDF4 import date2num
 
 PATH_ROOT = ""
-# Dates only to name the file properly - it doesn't affect the processing
-START_DATE = 0
-END_DATE = 0
 
 
 def process_files(
@@ -58,10 +55,9 @@ def process_files(
 
         # Load the file
         ds = xr.open_dataset(data_dir + "/" + file1)
-
+        print(f"Next file opened: {file1}")
         # The check of the end and start date from the previous and following files
         if last_date is not None:
-            print(f"Delta: {ds['time'].values[0] - last_date}")
             # Check if the time is continuous between the files (1 hour difference)
             if (ds["time"].values[0] - last_date) != np.timedelta64(
                 3600000000000, "ns"
@@ -178,9 +174,9 @@ def process_files(
         dtype=np.float64,
     )
 
-    # Read longtitude and latitude
-    lonc = ds_d["lonc"].values
-    latc = ds_d["latc"].values
+    # # Read longtitude and latitude
+    # lonc = ds_d["lonc"].values
+    # latc = ds_d["latc"].values
 
     # Create a new file with the processed data
     create_file_to_save_processed_data(
@@ -194,8 +190,8 @@ def process_files(
         T_15day_sd,
         dry_measurement_ratio,
         processed_data_file,
-        latc,
-        lonc,
+        # latc,
+        # lonc,
     )
     ds_d.close()
     ds_st.close()
@@ -212,8 +208,8 @@ def create_file_to_save_processed_data(
     T_sd: np.array,
     dry_measurement_ratio: np.array,
     processed_data_file: str,
-    latc: np.array,
-    lonc: np.array,
+    # latc: np.array,
+    # lonc: np.array,
 ):
     """
     Creates a new .nc file with the given data.
@@ -239,10 +235,10 @@ def create_file_to_save_processed_data(
         The ratio of dry measurements to all measurements over a 15-day period.
     processed_data_file : str
         The path to the file where the new data will be stored.
-    latc : np.array
-        The latitude data.
-    lonc : np.array
-        The longitude data.
+    # latc : np.array
+    #     The latitude data.
+    # lonc : np.array
+    #     The longitude data.
     """
     # Get the current time to add to the history
     current_time = datetime.now().strftime("%a %b %d %H:%M:%S %Y")
@@ -291,22 +287,22 @@ def create_file_to_save_processed_data(
                     "exposure percentage over a 15-day period",
                 ),
             ),
-            "lonc": (
-                ("yc", "xc"),
-                lonc,
-                {
-                    "units": "degrees_east",
-                    "long_name": "longitude",
-                },
-            ),
-            "latc": (
-                ("yc", "xc"),
-                latc,
-                {
-                    "units": "degrees_north",
-                    "long_name": "latitude",
-                },
-            ),
+            # "lonc": (
+            #     ("yc", "xc"),
+            #     lonc,
+            #     {
+            #         "units": "degrees_east",
+            #         "long_name": "longitude",
+            #     },
+            # ),
+            # "latc": (
+            #     ("yc", "xc"),
+            #     latc,
+            #     {
+            #         "units": "degrees_north",
+            #         "long_name": "latitude",
+            #     },
+            # ),
         },
         coords={
             "xc": xc,
@@ -345,8 +341,8 @@ def create_file_to_save_processed_data(
         "S_sd": encoding_format,
         "T_sd": encoding_format,
         "exp_pct": encoding_format,
-        "lonc": encoding_format,
-        "latc": encoding_format,
+        # "lonc": encoding_format,
+        # "latc": encoding_format,
     }
 
     # Save the dataset to a new file

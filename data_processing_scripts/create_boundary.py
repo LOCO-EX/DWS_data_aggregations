@@ -52,8 +52,6 @@ def create_boundary(
     da_ys = ds_trace["yc"]
     xs = da_xs.values
     ys = da_ys.values
-    # Close DS
-    ds_trace.close()
 
     # Check if xy resolution is homogeneous and isotropic
     if (xs[1] - xs[0]) == (ys[1] - ys[0]) == (xs[-1] - xs[-2]) == (ys[-1] - ys[-2]):
@@ -95,6 +93,27 @@ def create_boundary(
                 mask_outside_area,
                 {"coordinates": "xc yc", "long_name": "mask of dws"},
             ),
+            "bdr_dws": (
+                ["np_dws", "xy"],
+                bounds,
+                {"long_name": "boundary of dws"},
+            ),
+            "lonc": (
+                ("yc", "xc"),
+                ds_trace["lonc"].values,
+                {
+                    "units": "degrees_east",
+                    "long_name": "longitude",
+                },
+            ),
+            "latc": (
+                ("yc", "xc"),
+                ds_trace["latc"].values,
+                {
+                    "units": "degrees_north",
+                    "long_name": "latitude",
+                },
+            ),
         },
         coords=dict(xc=ds_trace["xc"], yc=ds_trace["yc"]),
         attrs=dict(
@@ -109,6 +128,8 @@ def create_boundary(
     )
 
     ds.to_netcdf(PATH_ROOT + path_to_output, "w", format="NETCDF4")
+    # Close DS
+    ds_trace.close()
 
     print("File created")
 
