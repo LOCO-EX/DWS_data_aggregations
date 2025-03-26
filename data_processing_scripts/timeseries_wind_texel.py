@@ -6,7 +6,7 @@ from datetime import datetime, timezone
 
 import xarray as xr
 
-PATH_ROOT = Path(__file__).parent
+PATH_ROOT = Path("")
 
 
 def timeseries_wind_texel(

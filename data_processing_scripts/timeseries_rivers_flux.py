@@ -7,7 +7,7 @@ from pathlib import Path
 import numpy as np
 import xarray as xr
 
-PATH_ROOT = Path(__file__).parent
+PATH_ROOT = Path("")
 
 
 def timeseries_rivers_flux(
@@ -176,6 +176,6 @@ def timeseries_rivers_flux(
 if __name__ == "__main__":
     timeseries_rivers_flux(
         save=True,
-        path_file=Path("../../../Data/GETM_RIVERS/rivers.v02.nc"),
-        path_output=Path("../../data"),
+        path_file=Path(""),
+        path_output=Path(""),
     )
