@@ -154,7 +154,7 @@ def process_file_based_on_water_depth_and_treshold(
             email="m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de",
             source="GETM (www.getm.eu)",
             comment="This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN).",
-            history=f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec="minutes")} using depth_process_data.py",
+            history=f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec="minutes")}.",
         ),
     )
     ds_uvz_.close()
