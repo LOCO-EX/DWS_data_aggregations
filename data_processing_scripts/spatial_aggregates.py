@@ -121,7 +121,7 @@ def spatial_aggregates(
         ds.to_netcdf(
             PATH_ROOT
             / path_aggregates
-            / f"DWS200m.aggregates.{variable_to_summarise}.nc",
+            / f"DWS200m.spatial_aggregates.{variable_to_summarise}.nc",
             "w",
             format="NETCDF4",
         )
