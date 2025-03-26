@@ -16,6 +16,7 @@ PATH_ROOT = ""
 def process_files(
     data_dir: str | str = "",
     processed_data_file: str | str = "",
+    file_with_bathymetry: str = "",
 ):
     """
     Processes the files from the given directory.
@@ -27,23 +28,21 @@ def process_files(
         The path to the directory where the data to process is stored.
     processed_data_file : str
         The path to the file where the processed files will be stored.
+    file_with_bathymetry : str
+        The path to the file with bathymetry data.
     """
     data_dir = PATH_ROOT + data_dir
-    # processed_data_file = (
-    #     PATH_ROOT
-    #     + processed_data_file
-    #     + "15day.aggregates."
-    #     + str(FIRST_DATE)
-    #     + "-"
-    #     + str(END_DATE)
-    #     + ".nc",
-    # )
     processed_data_file = PATH_ROOT + processed_data_file
     print(processed_data_file)
 
     # Get list of files from the directory and sort them alphabetically
     files_in_dir1 = os.listdir(data_dir)
     files_in_dir1_sorted = sorted(files_in_dir1)
+
+    # Read bathymetry
+    bathymetry_file = xr.open_dataset(PATH_ROOT + file_with_bathymetry)
+    bathym = bathymetry_file["h"].values
+    mask_bathy = np.isnan(bathym)
 
     # Create empty lists to store the data
     S_merge_ = []
@@ -63,7 +62,7 @@ def process_files(
                 3600000000000, "ns"
             ):
                 print(
-                    f"Error: There is not a continous time between the {file1} and previously processed file."
+                    f"Error: There is not a continous time between the {file1} and previously processed file. The processing is stopped."
                 )
                 break
 
@@ -96,6 +95,10 @@ def process_files(
             masked_S = np.ma.masked_array(S_reshaped, np.isnan(S_reshaped))
             masked_T = np.ma.masked_array(T_reshaped, np.isnan(T_reshaped))
 
+            # Ratio dry
+            ratio_dry = np.isnan(S_reshaped).sum(axis=1) / S_reshaped.shape[1] * 100
+            ratio_dry[:, mask_bathy] = np.nan
+
             # Calculate the 15-day average and standard deviation and don't consider NaN values
             if S_15day_avg is None:  # First iteration
                 S_15day_avg = np.mean(masked_S, axis=1).filled(np.nan)
@@ -104,9 +107,7 @@ def process_files(
                 S_15day_sd = np.std(masked_S, axis=1).filled(np.nan)
                 T_15day_sd = np.std(masked_T, axis=1).filled(np.nan)
                 # Calculate the ratio of dry measurements to all measurements over a 15-day periods
-                dry_measurement_ratio = (
-                    np.isnan(S_reshaped).sum(axis=1) / S_reshaped.shape[1] * 100
-                )
+                dry_measurement_ratio = ratio_dry
 
             else:  # Subsequent iterations
                 S_15day_avg = np.concatenate(
@@ -126,11 +127,10 @@ def process_files(
                 dry_measurement_ratio = np.concatenate(
                     (
                         dry_measurement_ratio,
-                        np.isnan(S_reshaped).sum(axis=1) / S_reshaped.shape[1] * 100,
+                        ratio_dry,
                     ),
                     axis=0,
                 )
-
             # Remove the processed 15-day periods from the lists
             S_merge_ = S_merge_[valid_steps:]
             T_merge_ = T_merge_[valid_steps:]
@@ -325,7 +325,7 @@ def create_file_to_save_processed_data(
             "email": "m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de",
             "source": "GETM (www.getm.eu)",
             "comment": "This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN).",
-            "history": f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec='minutes')} using aggregates_15days.py",
+            "history": f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec='minutes')}.",
         },
     )
 
