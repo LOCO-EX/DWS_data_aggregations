@@ -36,9 +36,11 @@ def timeseries_wind_texel(
     ds_wind.attrs["email"] = (
         "m.duran.matute@tue.nl; theo.gerkema@nioz.nl; ulf.graewe@io-warnemuende.de"
     )
-    ds_wind.attrs["source"] = "GETM (www.getm.eu)"
+    ds_wind.attrs["source"] = (
+        "Retrieved from http://www.uerra.eu/component/dpattachments/?task=attachment.download&id=296."
+    )
     ds_wind.attrs["comment"] = (
-        "This data is provided as part of the NWO/ENW project: LOCO-EX (OCENW.KLEIN.138). The numerical simulations were done thanks to the North-German Supercomputing Alliance (HLRN)."
+        "Ridal, M., Olsson, E., Unden, P., Zimmermann, K., & Ohlsson, A. (2017). Uncertainties in ensembles of regional re-analyses. Deliverable D2.7 HARMONIE reanalysis report of results and dataset."
     )
     ds_wind.attrs["history"] = (
         f"Created {datetime.now().replace(tzinfo=timezone.utc).isoformat(timespec='minutes')}."
