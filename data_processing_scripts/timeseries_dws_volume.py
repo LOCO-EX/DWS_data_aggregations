@@ -122,11 +122,7 @@ def timeseries_dws_volume(
         # Save the dataset to a new file
         if save:
             ds_volume.to_netcdf(
-                (
-                    PATH_ROOT
-                    / path_output
-                    / f"DWS.volume.{date_start.strftime("%Y%m")}01-{date_end.strftime("%Y%m")}01.nc"
-                ).resolve(),
+                (PATH_ROOT / path_output / f"DWS.volume.nc").resolve(),
                 "w",
                 format="NETCDF4",
                 encoding=encoding,
