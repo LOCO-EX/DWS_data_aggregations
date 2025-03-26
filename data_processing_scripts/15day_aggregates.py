@@ -1,9 +1,7 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 
-import argparse
 import os
-import sys
 from datetime import datetime, timedelta, timezone
 
 import numpy as np

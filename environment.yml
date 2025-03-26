@@ -1,4 +1,4 @@
-name: env_dws
+name: env_dws_processing
 channels:
   - conda-forge
 dependencies:
@@ -9,4 +9,7 @@ dependencies:
   - requests
   - scikit-image
   - python-dateutil
+  - matplotlib
+  - scipy
+  - pyproj
   - pip
